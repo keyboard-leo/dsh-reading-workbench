@@ -13,7 +13,7 @@
 ## 安装
 
 ```powershell
-dsh plugin --profile <profile> add @lihua/dsh-reading-workbench
+dsh plugin --profile <profile> add dsh-reading-workbench
 ```
 
 尚未发布到 npm 时，也可以直接用源码目录安装：在 profile 的 `package.json` 里以 `link:` 指向本目录，
@@ -547,7 +547,7 @@ Client → Host：UI 一律经同源 `fetch` 访问上述路由（对齐 skill-e
 ```text
 plugins/reading-workbench/
   package.json            # manifest：dsh.bundle.patch + dsh.client.inject/platform
-  cordis.patch.yml        # - insert: [{ id: reading-workbench, name: @lihua/dsh-reading-workbench }]
+  cordis.patch.yml        # - insert: [{ id: reading-workbench, name: dsh-reading-workbench }]
   tsdown.config.ts        # 双入口构建：lib/index.mjs（ESM/Host）+ lib/client.cjs（ModuleLoader 信封 CJS/Client）
   tsconfig.json / tsconfig.build.json
   src/

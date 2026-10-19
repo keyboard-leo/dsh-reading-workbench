@@ -1,5 +1,5 @@
 {
-  "name": "@lihua/dsh-reading-workbench",
+  "name": "dsh-reading-workbench",
   "description": "DSH 阅读工作台：书架、Markdown/TXT 阅读、划线批注与对话联动",
   "version": "0.1.0",
   "icon": "icon.svg",

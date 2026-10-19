@@ -2,4 +2,4 @@
 # 安装时由 dsh.bundle.patch 指向本文件生效。
 - insert:
     - id: reading-workbench
-      name: '@lihua/dsh-reading-workbench'
+      name: 'dsh-reading-workbench'

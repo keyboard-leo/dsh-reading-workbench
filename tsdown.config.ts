@@ -41,7 +41,7 @@ export default defineConfig([
     },
     banner: [
       'window.__ModuleLoader__.load({',
-      '  id: "@lihua/dsh-reading-workbench",',
+      '  id: "dsh-reading-workbench",',
       '  factory: (require) => {',
       '    var module = { exports: {} };',
       '    var exports = module.exports;',

@@ -40,7 +40,7 @@ function check(name, condition, detail) {
 const source = readFileSync(bundlePath, 'utf8');
 
 // 1) 信封形态：DSH 靠 window.__ModuleLoader__.load 收下这个包。
-const PLUGIN_ID = '@lihua/dsh-reading-workbench';
+const PLUGIN_ID = 'dsh-reading-workbench';
 check('产物是 __ModuleLoader__.load 信封', source.includes('window.__ModuleLoader__.load('));
 check(`信封 id 为 ${PLUGIN_ID}`, source.includes(`id: "${PLUGIN_ID}"`));
 
