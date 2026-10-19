@@ -1,0 +1,95 @@
+{
+  "name": "@lihua/dsh-reading-workbench",
+  "description": "DSH 阅读工作台：书架、Markdown/TXT 阅读、划线批注与对话联动",
+  "version": "0.1.0",
+  "icon": "icon.svg",
+  "type": "module",
+  "main": "lib/index.mjs",
+  "types": "lib/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.mts",
+      "default": "./lib/index.mjs"
+    },
+    "./client": {
+      "types": "./lib/client.d.cts",
+      "default": "./lib/client.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "engines": {
+      "dsh": ">=0.2.0-rc.2"
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-renderer",
+        "@deepseek-ai/dsh-client-ui-layout"
+      ],
+      "platform": "web"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh": ">=0.2.0-rc.2",
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "^4.0.4",
+    "@deepseek-ai/dsh-client-locale": "^0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-layout": "^0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-renderer": "^0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-sidebar": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-slots": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-host-webserver": "^0.2.0-rc.2",
+    "@types/node": "^22.20.0",
+    "@types/react": "~18.3.1",
+    "dompurify": "^3.4.17",
+    "jsdom": "^30.1.2",
+    "marked": "^18.1.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tsdown": "0.22.2",
+    "typescript": "~5.7.2"
+  },
+  "files": [
+    "lib/**",
+    "cordis.patch.yml",
+    "README.md",
+    "icon.svg"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/keyboard-leo/dsh-reading-workbench.git"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "reading",
+    "workbench",
+    "ebook",
+    "epub",
+    "pdf",
+    "markdown"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run check",
+    "build": "tsc -b tsconfig.build.json && tsdown && node scripts/postbuild-client.mjs && node scripts/client-bundle-check.mjs && node scripts/sandbox-contract-check.mjs",
+    "watch": "tsdown --watch",
+    "check": "node scripts/markdown-check.mjs && node scripts/client-bundle-check.mjs && node scripts/sandbox-contract-check.mjs && node scripts/reader-wheel-check.mjs && node scripts/txt-layout-selftest.mjs && node scripts/web-source-selftest.mjs && node scripts/web-source-instance-check.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3",
+    "pdfjs-dist": "^6.4.299"
+  }
+}
