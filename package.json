@@ -64,7 +64,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/keyboard-leo/dsh-reading-workbench.git"
+    "url": "git+https://github.com/keyboard-leo/dsh-reading-workbench.git"
   },
   "keywords": [
     "deepseek-harness",
