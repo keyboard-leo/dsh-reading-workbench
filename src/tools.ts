@@ -286,7 +286,10 @@ export function registerReadingTools(
           return {
             id: book.id,
             title: book.title,
-            author: book.author,
+            // 宿主 snapshotJsonValue 会把含 undefined 的对象判成「非无损 JSON」，
+            // 并让整次工具调用失败。书架里确实存在无作者的书（2026-10-19 实测 2 本），
+            // 所以缺作者时必须**省略键**，不能写成 author: undefined。
+            ...(book.author === undefined ? {} : { author: book.author }),
             format: book.format,
             ...(progress === undefined ? {} : { percent: progress.percent }),
           };

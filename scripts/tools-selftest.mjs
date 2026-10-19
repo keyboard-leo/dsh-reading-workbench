@@ -64,6 +64,75 @@ check('disposer 可调用且标记撤销', typeof disposer === 'function' && !ho
 disposer();
 check('disposer 撤销语义正确', host.disposed);
 
+/**
+ * 无损 JSON 判据：与宿主 `snapshotJsonValue` 的拒绝条件对齐。
+ *
+ * 2026-10-19 真机事故：`reading_books` 对无作者的书返回 `author: undefined`，
+ * 宿主判成「value is not lossless JSON」，整次工具调用失败（书架 24 本里有 2 本无作者）。
+ * 这里的规则比 JSON.stringify 更严——序列化丢键看似无害，但宿主拒绝的是「不可无损往返」。
+ */
+function losslessViolations(value, path = '$', seen = new Set()) {
+  const bad = [];
+  if (value === null) return bad;
+  const type = typeof value;
+  if (type === 'string' || type === 'boolean') return bad;
+  if (type === 'number') {
+    if (!Number.isFinite(value)) bad.push(`${path} 不是有限数字`);
+    return bad;
+  }
+  if (type === 'undefined') {
+    bad.push(`${path} 是 undefined`);
+    return bad;
+  }
+  if (type !== 'object') {
+    bad.push(`${path} 类型 ${type} 不可序列化`);
+    return bad;
+  }
+  if (seen.has(value)) {
+    bad.push(`${path} 循环引用`);
+    return bad;
+  }
+  const proto = Object.getPrototypeOf(value);
+  if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) {
+    bad.push(`${path} 是类实例（${proto?.constructor?.name ?? 'unknown'}）`);
+    return bad;
+  }
+  seen.add(value);
+  if (Array.isArray(value)) {
+    for (let i = 0; i < value.length; i += 1) {
+      if (!Object.hasOwn(value, i)) bad.push(`${path}[${i}] 是数组空洞`);
+      else bad.push(...losslessViolations(value[i], `${path}[${i}]`, seen));
+    }
+  } else {
+    for (const key of Object.keys(value)) {
+      if (value[key] === undefined) bad.push(`${path}.${key} 是 undefined`);
+      else bad.push(...losslessViolations(value[key], `${path}.${key}`, seen));
+    }
+  }
+  seen.delete(value);
+  return bad;
+}
+
+/** 对一次工具输出同时跑无损判据，打印一行结论。 */
+function checkLossless(label, value) {
+  const violations = losslessViolations(value);
+  check(`${label} 输出是无损 JSON`, violations.length === 0, violations.slice(0, 3).join('; '));
+  return violations.length === 0;
+}
+
+// 判据自检：故意构造宿主会拒绝的值，确保这条判据不是「永远返回空数组」的假断言
+{
+  const cases = [
+    ['undefined 属性', { books: [{ id: 'x', title: 'y', author: undefined, format: 'md' }] }],
+    ['NaN', { percent: Number.NaN }],
+    ['Date 实例', { at: new Date() }],
+    ['数组空洞', { items: [1, , 3] }],
+  ];
+  for (const [label, sample] of cases) {
+    check(`判据能抓到 ${label}（自检）`, losslessViolations(sample).length > 0);
+  }
+}
+
 // 重新注册供后续用例
 const disposer2 = registerReadingTools(host, paths);
 const tools = new Map(host.registered.slice(-3).map((tool) => [tool.name, tool]));
@@ -108,6 +177,9 @@ const { book1, book2 } = await seed();
   check('reading_books 返回两本', books.length === 2, `共 ${books.length}`);
   check('书 1 带进度', books.find((b) => b.id === 'book-md')?.percent === 50);
   check('书 2 无进度（字段缺省）', books.find((b) => b.id === 'book-epub')?.percent === undefined);
+  // 事故回归：无作者的书必须**省略 author 键**，不能留 author: undefined
+  check('书 2 无作者（键必须省略）', !Object.hasOwn(books.find((b) => b.id === 'book-epub'), 'author'));
+  checkLossless('reading_books', result);
   const rendered = tool.output.render({}, result);
   check('render 产出文本块', rendered.length === 1 && rendered[0].type === 'text');
   check('render 含书名与进度', rendered[0].text.includes('《测试文本书》') && rendered[0].text.includes('50%'), rendered[0].text.slice(0, 60));
@@ -135,6 +207,7 @@ const { book1, book2 } = await seed();
 
   const rendered = tool.output.render({}, all);
   check('render 含书名与笔记', rendered[0].text.includes('《测试文本书》') && rendered[0].text.includes('名句'));
+  checkLossless('reading_highlights', all);
 }
 
 // ── 3) reading_excerpt ──
@@ -145,6 +218,7 @@ const { book1, book2 } = await seed();
   const mdFull = await tool.execute({ bookId: 'book-md' }, fakeExec);
   check('md 正文原样保留（Markdown 不剥离）', mdFull.excerpt.startsWith('# 第一章'), mdFull.excerpt.slice(0, 20));
   check('md 全长与 hasMore', mdFull.totalLength > 0 && mdFull.hasMore === false);
+  checkLossless('reading_excerpt', mdFull);
 
   // md 分段截取（逐字符数：# 、第、一、章、\n、\n、床、前 = 8 字符）
   const mdSlice = await tool.execute({ bookId: 'book-md', offset: 0, length: 8 }, fakeExec);
