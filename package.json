@@ -56,7 +56,10 @@
     "typescript": "~5.7.2"
   },
   "files": [
-    "lib/**",
+    "lib/**/*.cjs",
+    "lib/**/*.mjs",
+    "lib/**/*.cts",
+    "lib/**/*.mts",
     "cordis.patch.yml",
     "README.md",
     "icon.svg"
